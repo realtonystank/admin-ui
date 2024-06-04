@@ -1,8 +1,47 @@
-import { Button, Card, Checkbox, Flex, Form, Input, Layout, Space } from "antd";
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Flex,
+  Form,
+  Input,
+  Layout,
+  Space,
+} from "antd";
 import { LockFilled, UserOutlined, LockOutlined } from "@ant-design/icons";
 import Logo from "../../components/icons/Logo";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Credentials } from "../../types";
+import { self, login } from "../../http/api";
 
 const LoginPage = () => {
+  const loginUser = async (credentials: Credentials) => {
+    const data = await login(credentials);
+    return data;
+  };
+
+  const getSelf = async () => {
+    const { data } = await self();
+    return data;
+  };
+
+  const { data: selfData, refetch } = useQuery({
+    queryKey: ["self"],
+    queryFn: getSelf,
+    enabled: false,
+  });
+
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationKey: ["login"],
+    mutationFn: loginUser,
+    onSuccess: async () => {
+      refetch();
+      console.log("userdata: ", selfData);
+      console.log("Login successful.");
+    },
+  });
+
   return (
     <Layout style={{ height: "100vh", display: "grid", placeItems: "center" }}>
       <Space direction="vertical" align="center" size="large">
@@ -31,7 +70,18 @@ const LoginPage = () => {
             initialValues={{
               remember: true,
             }}
+            onFinish={(values) => {
+              mutate({ email: values.username, password: values.password });
+              console.log(values);
+            }}
           >
+            {isError && (
+              <Alert
+                type="error"
+                message={error.message}
+                style={{ marginBottom: 24 }}
+              />
+            )}
             <Form.Item
               name="username"
               rules={[
@@ -72,6 +122,7 @@ const LoginPage = () => {
                 type="primary"
                 htmlType="submit"
                 style={{ width: "100%" }}
+                loading={isPending}
               >
                 Log in
               </Button>
