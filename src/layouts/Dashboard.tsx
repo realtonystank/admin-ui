@@ -72,7 +72,7 @@ const Dashboard = () => {
   }
   return (
     <div>
-      <Layout style={{ minHeight: "100vh" }}>
+      <Layout style={{ minHeight: "100vh", backgroundColor: colorBgContainer }}>
         <Sider
           collapsible
           collapsed={collapsed}
@@ -94,7 +94,7 @@ const Dashboard = () => {
             style={{
               paddingLeft: "16px",
               paddingRight: "16px",
-              background: colorBgContainer,
+              backgroundColor: colorBgContainer,
             }}
           >
             <Flex gap="middle" align="start" justify="space-between">
