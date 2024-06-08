@@ -11,7 +11,7 @@ export function greetUser() {
 
   let greeting;
   if (amPm === "am") greeting = "Good morning";
-  else if (currHr >= 12 && currHr <= 5) greeting = "Good afternoon";
+  else if (currHr === 12 || currHr <= 5) greeting = "Good afternoon";
   else greeting = "Good evening";
 
   return greeting;
