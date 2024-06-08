@@ -56,11 +56,7 @@ const Users = () => {
     queryFn: () => {
       return getUsers().then((res) => {
         const { users } = res.data;
-        const usersWithKeys = users.map((user: User) => ({
-          ...user,
-          key: user.id,
-        }));
-        return usersWithKeys;
+        return users;
       });
     },
   });
@@ -78,8 +74,12 @@ const Users = () => {
         {isLoading && <div>Loading...</div>}
         {isError && <div>{error.message}</div>}
 
-        <UsersFilter />
-        <Table columns={columns} dataSource={users} />
+        <UsersFilter
+          onFilterChange={(filterName, filterValue) => {
+            console.log(filterName, filterValue);
+          }}
+        />
+        <Table rowKey={"id"} columns={columns} dataSource={users} />
       </Space>
     </>
   );
