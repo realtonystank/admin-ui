@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, Navigate, Outlet } from "react-router-dom";
+import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
 import {
   Avatar,
@@ -14,45 +14,57 @@ import {
 import Icon, { BellFilled } from "@ant-design/icons";
 import Logo from "../components/icons/Logo";
 import Home from "../components/icons/Home";
-import User from "../components/icons/UserIcon";
 import { foodIcon } from "../components/icons/FoodIcon";
 import BasketIcon from "../components/icons/BasketIcon";
 import GiftIcon from "../components/icons/GiftIcon";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "../http/api";
+import UserIcon from "../components/icons/UserIcon";
 
 const { Sider, Header, Content, Footer } = Layout;
 
-const items = [
-  {
-    key: "/",
-    icon: <Icon component={Home} />,
-    label: <NavLink to="/">Home</NavLink>,
-  },
-  {
-    key: "/users",
-    icon: <Icon component={User} />,
-    label: <NavLink to="/users">Users</NavLink>,
-  },
-  {
-    key: "/restaurants",
-    icon: <Icon component={foodIcon} />,
-    label: <NavLink to="/restaurants">Restaurants</NavLink>,
-  },
-  {
-    key: "/products",
-    icon: <Icon component={BasketIcon} />,
-    label: <NavLink to="/products">Products</NavLink>,
-  },
-  {
-    key: "/promos",
-    icon: <Icon component={GiftIcon} />,
-    label: <NavLink to="/promos">Promos</NavLink>,
-  },
-];
+const getMenuItems = (role: string) => {
+  const baseItems = [
+    {
+      key: "/",
+      icon: <Icon component={Home} />,
+      label: <NavLink to="/">Home</NavLink>,
+    },
+    {
+      key: "/restaurants",
+      icon: <Icon component={foodIcon} />,
+      label: <NavLink to="/restaurants">Restaurants</NavLink>,
+    },
+    {
+      key: "/products",
+      icon: <Icon component={BasketIcon} />,
+      label: <NavLink to="/products">Products</NavLink>,
+    },
+    {
+      key: "/promos",
+      icon: <Icon component={GiftIcon} />,
+      label: <NavLink to="/promos">Promos</NavLink>,
+    },
+  ];
+
+  if (role === "admin") {
+    const menus = [...baseItems];
+    menus.splice(1, 0, {
+      key: "/users",
+      icon: <Icon component={UserIcon} />,
+      label: <NavLink to="/users">Users</NavLink>,
+    });
+    return menus;
+  }
+
+  return baseItems;
+};
 
 const Dashboard = () => {
-  const { logout: logoutFromStore } = useAuthStore();
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const { user, logout: logoutFromStore } = useAuthStore();
+
   const { mutate: logoutMutate } = useMutation({
     mutationKey: ["logout"],
     mutationFn: logout,
@@ -66,10 +78,14 @@ const Dashboard = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const { user } = useAuthStore();
   if (user === null) {
     return <Navigate to="/auth/login" replace={true} />;
   }
+  const items = getMenuItems(user.role);
+  const selectedKeys = [
+    items.find((item) => item.key === currentPath)?.key || "/",
+  ];
+
   return (
     <div>
       <Layout style={{ minHeight: "100vh", backgroundColor: colorBgContainer }}>
@@ -87,6 +103,7 @@ const Dashboard = () => {
             defaultSelectedKeys={["/"]}
             mode="inline"
             items={items}
+            selectedKeys={selectedKeys}
           />
         </Sider>
         <Layout>

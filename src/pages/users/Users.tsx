@@ -1,9 +1,11 @@
-import { Breadcrumb, Space, Table } from "antd";
+import { Breadcrumb, Card, Space, Table } from "antd";
 import { RightOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { NavLink, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getUsers } from "../../http/api";
 import { User } from "../../types";
+import { useAuthStore } from "../../store";
+import UsersFilter from "./UsersFilter";
 
 const columns = [
   {
@@ -37,6 +39,13 @@ const columns = [
 ];
 
 const Users = () => {
+  const { user } = useAuthStore();
+
+  if (user?.role !== "admin") {
+    console.log(user?.role);
+    return <Navigate to="/" replace={true} />;
+  }
+
   const {
     data: users,
     isLoading,
@@ -47,7 +56,11 @@ const Users = () => {
     queryFn: () => {
       return getUsers().then((res) => {
         const { users } = res.data;
-        return users;
+        const usersWithKeys = users.map((user: User) => ({
+          ...user,
+          key: user.id,
+        }));
+        return usersWithKeys;
       });
     },
   });
@@ -56,11 +69,16 @@ const Users = () => {
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <Breadcrumb
           separator={<RightOutlined />}
-          items={[{ title: <Link to="/">Dashboard</Link> }, { title: "Users" }]}
+          items={[
+            { title: <NavLink to="/">Dashboard</NavLink> },
+            { title: "Users" },
+          ]}
         />
 
         {isLoading && <div>Loading...</div>}
         {isError && <div>{error.message}</div>}
+
+        <UsersFilter />
         <Table columns={columns} dataSource={users} />
       </Space>
     </>
