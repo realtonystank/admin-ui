@@ -1,6 +1,5 @@
-import React, { ReactNode } from "react";
-import { Button, Card, Col, Input, Row, Select } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { ReactNode } from "react";
+import { Card, Col, Input, Row, Select } from "antd";
 
 type userFilterProps = {
   onFilterChange: (filterName: string, filterValue: string) => void;

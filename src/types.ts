@@ -10,3 +10,10 @@ export type User = {
   lastName: string;
   createdAt: string;
 };
+
+export type Restaurant = {
+  address: string;
+  name: string;
+  id: string;
+  createdAt: string;
+};
