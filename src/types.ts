@@ -17,3 +17,9 @@ export type Restaurant = {
   id: string;
   createdAt: string;
 };
+
+export type Tenants = {
+  id: number;
+  address: string;
+  name: string;
+};
