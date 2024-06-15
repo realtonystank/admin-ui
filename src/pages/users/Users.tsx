@@ -1,8 +1,24 @@
-import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
+import {
+  Breadcrumb,
+  Button,
+  Drawer,
+  Flex,
+  Form,
+  Space,
+  Spin,
+  Table,
+  Typography,
+  theme,
+} from "antd";
 import { useState } from "react";
-import { RightOutlined } from "@ant-design/icons";
+import { RightOutlined, LoadingOutlined } from "@ant-design/icons";
 import { NavLink, Navigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { createUser, getUsers } from "../../http/api";
 import { CreateUserData, User } from "../../types";
 import { useAuthStore } from "../../store";
@@ -82,7 +98,7 @@ const Users = () => {
 
   const {
     data: users,
-    isLoading,
+    isFetching,
     isError,
     error,
   } = useQuery({
@@ -96,21 +112,29 @@ const Users = () => {
         return res.data;
       });
     },
+    placeholderData: keepPreviousData,
   });
 
   return (
     <>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        <Breadcrumb
-          separator={<RightOutlined />}
-          items={[
-            { title: <NavLink to="/">Dashboard</NavLink> },
-            { title: "Users" },
-          ]}
-        />
-
-        {isLoading && <div>Loading...</div>}
-        {isError && <div>{error.message}</div>}
+        <Flex justify="space-between">
+          <Breadcrumb
+            separator={<RightOutlined />}
+            items={[
+              { title: <NavLink to="/">Dashboard</NavLink> },
+              { title: "Users" },
+            ]}
+          />
+          {isFetching && (
+            <Spin
+              indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
+            />
+          )}
+          {isError && (
+            <Typography.Text type="danger">{error.message}</Typography.Text>
+          )}
+        </Flex>
 
         <UsersFilter
           onFilterChange={(filterName, filterValue) => {
