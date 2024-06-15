@@ -1,11 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
-import { getRestaurants } from "../../http/api";
-import { Restaurant } from "../../types";
-import { Breadcrumb, Button, Drawer, Space, Table } from "antd";
+import { createTenant, getRestaurants } from "../../http/api";
+import { Restaurant, createTenantData } from "../../types";
+import { Breadcrumb, Button, Drawer, Form, Space, Table } from "antd";
 import RestaurantsFilter from "./RestaurantsFilter";
 import { NavLink } from "react-router-dom";
 import { RightOutlined, PlusOutlined } from "@ant-design/icons";
+import RestaurantForm from "./forms/RestaurantForm";
+import { useForm } from "antd/es/form/Form";
 
 const items = [
   {
@@ -37,6 +39,9 @@ const columns = [
 const Restaurants = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
+  const [form] = useForm();
+  const queryClient = useQueryClient();
+
   const {
     data: restaurants,
     isLoading,
@@ -51,6 +56,22 @@ const Restaurants = () => {
       });
     },
   });
+
+  const { mutate: tenantMutate } = useMutation({
+    mutationKey: ["tenant"],
+    mutationFn: async (data: createTenantData) =>
+      createTenant(data).then((res) => res.data),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
+    },
+  });
+
+  const onHandleSubmit = async () => {
+    await form.validateFields();
+    await tenantMutate(form.getFieldsValue());
+    form.resetFields();
+    setDrawerOpen(false);
+  };
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -79,17 +100,29 @@ const Restaurants = () => {
         open={drawerOpen}
         extra={
           <Space>
-            <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
-            <Button type="primary">Submit</Button>
+            <Button
+              onClick={() => {
+                form.resetFields();
+                setDrawerOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="primary" onClick={onHandleSubmit}>
+              Submit
+            </Button>
           </Space>
         }
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => {
+          form.resetFields();
+          setDrawerOpen(false);
+        }}
         width={720}
         destroyOnClose={true}
       >
-        <div>Content...</div>
-        <div>Content...</div>
-        <div>Content...</div>
+        <Form layout="vertical" form={form}>
+          <RestaurantForm />
+        </Form>
       </Drawer>
     </Space>
   );

@@ -52,7 +52,7 @@ const Users = () => {
   const { user } = useAuthStore();
 
   const { mutate: userMutate } = useMutation({
-    mutationKey: [""],
+    mutationKey: ["user"],
     mutationFn: async (data: CreateUserData) =>
       createUser(data).then((res) => res.data),
     onSuccess: async () => {

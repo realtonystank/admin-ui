@@ -33,3 +33,5 @@ export type Tenants = {
   address: string;
   name: string;
 };
+
+export type createTenantData = Omit<Tenants, "id">;
