@@ -9,6 +9,7 @@ import { useAuthStore } from "../../store";
 import UsersFilter from "./UsersFilter";
 import { PlusOutlined } from "@ant-design/icons";
 import UserForm from "./forms/UserForm";
+import { PER_PAGE } from "../../constant";
 
 const columns = [
   {
@@ -68,6 +69,10 @@ const Users = () => {
     setDrawerOpen(false);
   };
 
+  const [queryParams, setQueryParams] = useState({
+    perPage: PER_PAGE,
+    currentPage: 1,
+  });
   const [drawserOpen, setDrawerOpen] = useState(false);
 
   if (user?.role !== "admin") {
@@ -81,11 +86,14 @@ const Users = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["users", queryParams],
     queryFn: () => {
-      return getUsers().then((res) => {
-        const { users } = res.data;
-        return users;
+      const queryString = new URLSearchParams(
+        queryParams as unknown as Record<string, string>
+      ).toString();
+
+      return getUsers(queryString).then((res) => {
+        return res.data;
       });
     },
   });
@@ -117,7 +125,21 @@ const Users = () => {
             Add User
           </Button>
         </UsersFilter>
-        <Table rowKey={"id"} columns={columns} dataSource={users} />
+        <Table
+          rowKey={"id"}
+          columns={columns}
+          dataSource={users?.data}
+          pagination={{
+            total: users?.total,
+            pageSize: queryParams.perPage,
+            current: queryParams.currentPage,
+            onChange: (page) => {
+              setQueryParams((prev) => {
+                return { ...prev, currentPage: page };
+              });
+            },
+          }}
+        />
 
         <Drawer
           title="Create user"
