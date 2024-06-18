@@ -10,7 +10,7 @@ import {
   Typography,
   theme,
 } from "antd";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { RightOutlined, LoadingOutlined } from "@ant-design/icons";
 import { NavLink, Navigate } from "react-router-dom";
 import {
@@ -26,6 +26,7 @@ import UsersFilter from "./UsersFilter";
 import { PlusOutlined } from "@ant-design/icons";
 import UserForm from "./forms/UserForm";
 import { PER_PAGE } from "../../constant";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -92,6 +93,14 @@ const Users = () => {
   });
   const [drawserOpen, setDrawerOpen] = useState(false);
 
+  const debouncedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => {
+        return { ...prev, q: value };
+      });
+    }, 500);
+  }, []);
+
   const onFilterChange = (changedFields: FieldData[]) => {
     const changedFilterFields = changedFields
       .map((item) => {
@@ -102,9 +111,14 @@ const Users = () => {
       .reduce((acc, item) => {
         return { ...acc, ...item };
       }, {});
-    setQueryParams((prev) => {
-      return { ...prev, ...changedFilterFields };
-    });
+
+    if ("q" in changedFilterFields) {
+      debouncedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => {
+        return { ...prev, ...changedFilterFields };
+      });
+    }
   };
 
   if (user?.role !== "admin") {
