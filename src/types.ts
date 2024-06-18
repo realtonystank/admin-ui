@@ -9,6 +9,7 @@ export type User = {
   firstName: string;
   lastName: string;
   createdAt: string;
+  tenant?: Tenants;
 };
 
 export type CreateUserData = {
