@@ -35,3 +35,8 @@ export type Tenants = {
 };
 
 export type createTenantData = Omit<Tenants, "id">;
+
+export type FieldData = {
+  name: string[];
+  value?: string;
+};
