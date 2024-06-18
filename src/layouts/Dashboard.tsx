@@ -79,7 +79,9 @@ const Dashboard = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   if (user === null) {
-    return <Navigate to="/auth/login" replace={true} />;
+    return (
+      <Navigate to={`/auth/login?returnTo=${currentPath}`} replace={true} />
+    );
   }
   const items = getMenuItems(user.role);
   const selectedKeys = [
