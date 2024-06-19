@@ -8,8 +8,13 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants"],
     queryFn: () => {
-      return getRestaurants().then((res) => {
-        const { tenants } = res.data;
+      const queryString = new URLSearchParams({
+        perPage: "500",
+        currentPage: "1",
+      }).toString();
+      return getRestaurants(queryString).then((res) => {
+        const { data: tenants } = res.data;
+        console.log(tenants);
         return tenants;
       });
     },

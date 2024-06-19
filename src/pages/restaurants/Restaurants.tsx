@@ -8,6 +8,7 @@ import { NavLink } from "react-router-dom";
 import { RightOutlined, PlusOutlined } from "@ant-design/icons";
 import RestaurantForm from "./forms/RestaurantForm";
 import { useForm } from "antd/es/form/Form";
+import { PER_PAGE } from "../../constant";
 
 const items = [
   {
@@ -45,17 +46,24 @@ const Restaurants = () => {
   const [form] = useForm();
   const queryClient = useQueryClient();
 
+  const [queryParams, setQueryParams] = useState({
+    perPage: PER_PAGE,
+    currentPage: 1,
+  });
+
   const {
     data: restaurants,
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["restaurants"],
+    queryKey: ["restaurants", queryParams],
     queryFn: () => {
-      return getRestaurants().then((res) => {
-        const { tenants } = res.data;
-        return tenants;
+      const queryString = new URLSearchParams(
+        queryParams as unknown as Record<string, string>
+      ).toString();
+      return getRestaurants(queryString).then((res) => {
+        return res.data;
       });
     },
   });
@@ -142,7 +150,18 @@ const Restaurants = () => {
             },
           },
         ]}
-        dataSource={restaurants}
+        dataSource={restaurants?.data}
+        pagination={{
+          total: restaurants?.total,
+          pageSize: queryParams.perPage,
+          current: queryParams.currentPage,
+          onChange: (page) => {
+            setQueryParams((prev) => ({ ...prev, currentPage: page }));
+          },
+          showTotal: (total: number, range: number[]) => {
+            return `Showing ${range[0]} - ${range[1]}  of ${total}`;
+          },
+        }}
       />
 
       <Drawer
