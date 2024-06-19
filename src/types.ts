@@ -19,8 +19,9 @@ export type CreateUserData = {
   lastName: string;
   password: string;
   role: string;
-  tenantId: number;
+  tenantId?: number;
 };
+export type UpdateUserData = Omit<CreateUserData, "password">;
 
 export type Restaurant = {
   address: string;

@@ -3,7 +3,8 @@ import { Card, Col, Form, Input, Row, Select, Space } from "antd";
 import { getRestaurants } from "../../../http/api";
 import { Tenants } from "../../../types";
 
-const UserForm = () => {
+const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
+  const selectedRole = Form.useWatch("role");
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants"],
     queryFn: () => {
@@ -57,19 +58,24 @@ const UserForm = () => {
               </Col>
             </Row>
           </Card>
-          <Card title="Security info" bordered={false}>
-            <Row gutter={20}>
-              <Col span={12}>
-                <Form.Item
-                  label="Password"
-                  name="password"
-                  rules={[{ required: true, message: "Password is required" }]}
-                >
-                  <Input size="large" type="password" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
+          {!isEditMode && (
+            <Card title="Security info" bordered={false}>
+              <Row gutter={20}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Password"
+                    name="password"
+                    rules={[
+                      { required: true, message: "Password is required" },
+                    ]}
+                  >
+                    <Input size="large" type="password" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+          )}
+
           <Card title="Role" bordered={false}>
             <Row gutter={20}>
               <Col span={12}>
@@ -79,6 +85,7 @@ const UserForm = () => {
                   rules={[{ required: true, message: "Role is required" }]}
                 >
                   <Select
+                    id="selectBoxInUserForm"
                     style={{ width: "100%" }}
                     allowClear={true}
                     placeholder="Select role"
@@ -86,34 +93,35 @@ const UserForm = () => {
                   >
                     <Select.Option value="admin">Admin</Select.Option>
                     <Select.Option value="manager">Manager</Select.Option>
-                    <Select.Option value="customer">Customer</Select.Option>
                   </Select>
                 </Form.Item>
               </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Tenant"
-                  name="tenantId"
-                  rules={[
-                    { required: true, message: "Restaurant is required" },
-                  ]}
-                >
-                  <Select
-                    style={{ width: "100%" }}
-                    allowClear={true}
-                    placeholder="Select role"
-                    size="large"
+              {selectedRole === "manager" && (
+                <Col span={12}>
+                  <Form.Item
+                    label="Tenant"
+                    name="tenantId"
+                    rules={[
+                      { required: true, message: "Restaurant is required" },
+                    ]}
                   >
-                    {restaurants?.map((tenant: Tenants) => {
-                      return (
-                        <Select.Option key={tenant.id} value={tenant.id}>
-                          {tenant.name}
-                        </Select.Option>
-                      );
-                    })}
-                  </Select>
-                </Form.Item>
-              </Col>
+                    <Select
+                      style={{ width: "100%" }}
+                      allowClear={true}
+                      placeholder="Select restaurant"
+                      size="large"
+                    >
+                      {restaurants?.map((tenant: Tenants) => {
+                        return (
+                          <Select.Option key={tenant.id} value={tenant.id}>
+                            {tenant.name}
+                          </Select.Option>
+                        );
+                      })}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              )}
             </Row>
           </Card>
         </Space>

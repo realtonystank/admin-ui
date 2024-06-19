@@ -1,7 +1,7 @@
 import {
   CreateUserData,
   Credentials,
-  Tenants,
+  UpdateUserData,
   createTenantData,
 } from "../types";
 import { api } from "./client";
@@ -22,3 +22,6 @@ export const createTenant = (tenant: createTenantData) =>
   api.post("/tenants", tenant);
 
 export const createUser = (user: CreateUserData) => api.post("/users", user);
+
+export const updateUser = (user: UpdateUserData, id: string) =>
+  api.patch(`/users/${id}`, user);
