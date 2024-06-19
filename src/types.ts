@@ -31,7 +31,7 @@ export type Restaurant = {
 };
 
 export type Tenants = {
-  id: number;
+  id: string;
   address: string;
   name: string;
 };

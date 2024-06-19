@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
-import { createTenant, getRestaurants } from "../../http/api";
-import { Restaurant, createTenantData } from "../../types";
+import React, { useEffect, useState } from "react";
+import { createTenant, getRestaurants, updateTenant } from "../../http/api";
+import { Restaurant, Tenants, createTenantData } from "../../types";
 import { Breadcrumb, Button, Drawer, Form, Space, Table } from "antd";
 import RestaurantsFilter from "./RestaurantsFilter";
 import { NavLink } from "react-router-dom";
@@ -39,6 +39,9 @@ const columns = [
 const Restaurants = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
+  const [currentEditingTenant, setCurrentEditingTenant] =
+    useState<Tenants | null>(null);
+
   const [form] = useForm();
   const queryClient = useQueryClient();
 
@@ -66,12 +69,35 @@ const Restaurants = () => {
     },
   });
 
+  const { mutate: updateTenantMutation } = useMutation({
+    mutationKey: ["update-tenant"],
+    mutationFn: async (data: Tenants) =>
+      updateTenant(data, currentEditingTenant!.id),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
+    },
+  });
+
   const onHandleSubmit = async () => {
     await form.validateFields();
-    await tenantMutate(form.getFieldsValue());
+    const isEditMode = !!currentEditingTenant;
+    if (isEditMode) {
+      await updateTenantMutation(form.getFieldsValue());
+    } else {
+      await tenantMutate(form.getFieldsValue());
+    }
     form.resetFields();
     setDrawerOpen(false);
   };
+
+  useEffect(() => {
+    if (currentEditingTenant) {
+      setDrawerOpen(true);
+      form.setFieldsValue({
+        ...currentEditingTenant,
+      });
+    }
+  }, [currentEditingTenant, form]);
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -94,9 +120,33 @@ const Restaurants = () => {
         </Button>
       </RestaurantsFilter>
 
-      <Table rowKey={"id"} columns={columns} dataSource={restaurants} />
+      <Table
+        rowKey={"id"}
+        columns={[
+          ...columns,
+          {
+            title: "Actions",
+            render: (_: string, record: Tenants) => {
+              return (
+                <Space>
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      setCurrentEditingTenant(record);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </Space>
+              );
+            },
+          },
+        ]}
+        dataSource={restaurants}
+      />
 
       <Drawer
+        title={currentEditingTenant ? "Update a tenant" : "Create a tenant"}
         open={drawerOpen}
         extra={
           <Space>
@@ -116,6 +166,7 @@ const Restaurants = () => {
         onClose={() => {
           form.resetFields();
           setDrawerOpen(false);
+          setCurrentEditingTenant(null);
         }}
         width={720}
         destroyOnClose={true}
