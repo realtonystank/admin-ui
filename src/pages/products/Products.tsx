@@ -1,9 +1,15 @@
-import { Breadcrumb, Flex, Space, Spin, Typography } from "antd";
-import { RightOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Flex, Form, Space, Spin, Typography } from "antd";
+import {
+  RightOutlined,
+  LoadingOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import React from "react";
 import { NavLink } from "react-router-dom";
+import ProductFilter from "./ProductFilter";
 
 const Products = () => {
+  const [filterForm] = Form.useForm();
   return (
     <>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -16,6 +22,13 @@ const Products = () => {
             ]}
           />
         </Flex>
+        <Form form={filterForm} onFieldsChange={() => {}}>
+          <ProductFilter>
+            <Button onClick={() => {}} type="primary" icon={<PlusOutlined />}>
+              Add Product
+            </Button>
+          </ProductFilter>
+        </Form>
       </Space>
     </>
   );
