@@ -14,7 +14,6 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
       }).toString();
       return getRestaurants(queryString).then((res) => {
         const { data: tenants } = res.data;
-        console.log(tenants);
         return tenants;
       });
     },
