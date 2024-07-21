@@ -7,26 +7,30 @@ import {
 } from "../types";
 import { api } from "./client";
 
+export const AUTH_SERVICE = "/api/auth";
+const CATALOG_SERVICE = "/api/catalog";
+
 export const login = (credentials: Credentials) =>
-  api.post("/auth/login", credentials);
+  api.post(`${AUTH_SERVICE}/auth/login`, credentials);
 
-export const self = () => api.get("/auth/self");
+export const self = () => api.get(`${AUTH_SERVICE}/auth/self`);
 
-export const logout = () => api.post("/auth/logout");
+export const logout = () => api.post(`${AUTH_SERVICE}/auth/logout`);
 
 export const getUsers = (queryString: string) =>
-  api.get(`/users?${queryString}`);
+  api.get(`${AUTH_SERVICE}/users?${queryString}`);
 
 export const getRestaurants = (queryString: string) =>
-  api.get(`/tenants?${queryString}`);
+  api.get(`${AUTH_SERVICE}/tenants?${queryString}`);
 
 export const createTenant = (tenant: createTenantData) =>
-  api.post("/tenants", tenant);
+  api.post(`${AUTH_SERVICE}/tenants`, tenant);
 
 export const updateTenant = (tenant: Tenants, id: string) =>
-  api.patch(`/tenants/${id}`, tenant);
+  api.patch(`${AUTH_SERVICE}/tenants/${id}`, tenant);
 
-export const createUser = (user: CreateUserData) => api.post("/users", user);
+export const createUser = (user: CreateUserData) =>
+  api.post(`${AUTH_SERVICE}/users`, user);
 
 export const updateUser = (user: UpdateUserData, id: string) =>
-  api.patch(`/users/${id}`, user);
+  api.patch(`${AUTH_SERVICE}/users/${id}`, user);
