@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 export interface Tenant {
+  id: string;
   name: string;
   address: string;
 }

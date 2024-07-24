@@ -13,10 +13,12 @@ import {
 import React, { ReactNode } from "react";
 import { getCategories, getRestaurants } from "../../http/api";
 import { Category, Restaurant } from "../../types";
+import { useAuthStore } from "../../store";
 type productFilterProps = {
   children: ReactNode;
 };
 const ProductFilter = ({ children }: productFilterProps) => {
+  const { user } = useAuthStore();
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants"],
     queryFn: () => {
@@ -70,26 +72,29 @@ const ProductFilter = ({ children }: productFilterProps) => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={6}>
-              <Form.Item name="tenantId">
-                <Select
-                  allowClear={true}
-                  placeholder="Select Restaurant"
-                  style={{ width: "100%" }}
-                >
-                  {restaurants?.map((restaurant: Restaurant) => {
-                    return (
-                      <Select.Option
-                        value={`${restaurant.id}`}
-                        key={`${restaurant.id}`}
-                      >
-                        {restaurant.name}
-                      </Select.Option>
-                    );
-                  })}
-                </Select>
-              </Form.Item>
-            </Col>
+            {user!.role === "admin" && (
+              <Col span={6}>
+                <Form.Item name="tenantId">
+                  <Select
+                    allowClear={true}
+                    placeholder="Select Restaurant"
+                    style={{ width: "100%" }}
+                  >
+                    {restaurants?.map((restaurant: Restaurant) => {
+                      return (
+                        <Select.Option
+                          value={`${restaurant.id}`}
+                          key={`${restaurant.id}`}
+                        >
+                          {restaurant.name}
+                        </Select.Option>
+                      );
+                    })}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+
             <Col span={6}>
               <Space size="middle" direction="horizontal">
                 <Form.Item name="isPublished">
