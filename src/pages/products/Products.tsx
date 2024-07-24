@@ -15,14 +15,15 @@ import {
   LoadingOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import ProductFilter from "./ProductFilter";
-import { Product } from "../../types";
+import { FieldData, Product } from "../../types";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PER_PAGE } from "../../constant";
 import { getProducts } from "../../http/api";
 import { format } from "date-fns";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -85,8 +86,8 @@ const Products = () => {
   const [filterForm] = Form.useForm();
 
   const [queryParams, setQueryParams] = useState({
-    perPage: PER_PAGE,
-    currentPage: 1,
+    limit: PER_PAGE,
+    page: 1,
   });
 
   const {
@@ -115,6 +116,34 @@ const Products = () => {
     placeholderData: keepPreviousData,
   });
 
+  const debouncedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => {
+        return { ...prev, q: value, page: 1 };
+      });
+    }, 500);
+  }, []);
+
+  const onFilterChange = (changedFields: FieldData[]) => {
+    const changedFilterFields = changedFields
+      .map((item) => {
+        return {
+          [item.name[0]]: item.value,
+        };
+      })
+      .reduce((acc, item) => {
+        return { ...acc, ...item };
+      }, {});
+
+    if ("q" in changedFilterFields) {
+      debouncedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => {
+        return { ...prev, ...changedFilterFields, page: 1 };
+      });
+    }
+  };
+
   return (
     <>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -127,7 +156,7 @@ const Products = () => {
             ]}
           />
         </Flex>
-        <Form form={filterForm} onFieldsChange={() => {}}>
+        <Form form={filterForm} onFieldsChange={onFilterChange}>
           <ProductFilter>
             <Button onClick={() => {}} type="primary" icon={<PlusOutlined />}>
               Add Product
@@ -155,9 +184,13 @@ const Products = () => {
           dataSource={products?.data}
           pagination={{
             total: products?.total,
-            pageSize: queryParams.perPage,
-            current: queryParams.currentPage,
-            onChange: (page) => {},
+            pageSize: queryParams.limit,
+            current: queryParams.page,
+            onChange: (page) => {
+              setQueryParams((prev) => {
+                return { ...prev, page: page };
+              });
+            },
             showTotal: (total: number, range: number[]) => {
               return `Showing ${range[0]} - ${range[1]} of ${total} items`;
             },
