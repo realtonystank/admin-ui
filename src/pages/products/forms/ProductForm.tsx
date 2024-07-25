@@ -153,7 +153,9 @@ const ProductForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
           </Card>
 
           {selectedCategory && <Pricing selectedCategory={selectedCategory} />}
-          {selectedCategory && <Attributes />}
+          {selectedCategory && (
+            <Attributes selectedCategory={selectedCategory} />
+          )}
 
           <Card title="Other properties" bordered={false}>
             <Col span={12}>
