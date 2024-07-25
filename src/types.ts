@@ -43,11 +43,6 @@ export type FieldData = {
   value?: string;
 };
 
-export type Category = {
-  _id: string;
-  name: string;
-};
-
 export type Product = {
   name: string;
   description: string;
@@ -58,3 +53,24 @@ export type Product = {
   image: string;
   isPublished: boolean;
 };
+
+export interface PriceConfiguration {
+  [key: string]: {
+    priceType: "base" | "additional";
+    availableOptions: string[];
+  };
+}
+
+export interface Attribute {
+  name: string;
+  widgetType: "switch" | "radio";
+  defaultValue: string;
+  availableOptions: string[];
+}
+
+export interface Category {
+  _id: string;
+  name: string;
+  priceConfiguration: PriceConfiguration;
+  attributes: Attribute[];
+}
