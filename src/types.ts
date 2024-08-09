@@ -74,3 +74,7 @@ export interface Category {
   priceConfiguration: PriceConfiguration;
   attributes: Attribute[];
 }
+
+export type ImageField = { file: File };
+
+export type CreateProductData = Product & { image: ImageField };

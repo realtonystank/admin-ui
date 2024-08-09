@@ -21,13 +21,19 @@ import React, { useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import ProductFilter from "./ProductFilter";
 import { FieldData, Product } from "../../types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { PER_PAGE } from "../../constant";
-import { getProducts } from "../../http/api";
+import { createProduct, getProducts } from "../../http/api";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
 import ProductForm from "./forms/ProductForm";
+import { makeFormData } from "./helpers";
 
 const columns = [
   {
@@ -89,6 +95,8 @@ const columns = [
 const Products = () => {
   const [filterForm] = Form.useForm();
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+
   const { user } = useAuthStore();
   const {
     token: { colorBgLayout },
@@ -119,14 +127,22 @@ const Products = () => {
         filteredParams as unknown as Record<string, string>
       ).toString();
 
-      console.log(queryString);
-
       return getProducts(queryString).then((res) => {
-        console.log(res.data);
         return res.data;
       });
     },
     placeholderData: keepPreviousData,
+  });
+
+  const { mutate: productMutate } = useMutation({
+    mutationKey: ["product"],
+    mutationFn: async (data: FormData) =>
+      createProduct(data).then((res) => res.data),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      form.resetFields();
+      setDrawerOpen(false);
+    },
   });
 
   const debouncedQUpdate = useMemo(() => {
@@ -157,7 +173,43 @@ const Products = () => {
     }
   };
 
-  const onHandleSubmit = () => {};
+  const onHandleSubmit = async () => {
+    await form.validateFields();
+    const priceConfiguration = form.getFieldValue("priceConfiguration");
+    const pricing = Object.entries(priceConfiguration).reduce(
+      (acc, [key, value]) => {
+        const parsedKey = JSON.parse(key);
+        return {
+          ...acc,
+          [parsedKey.configurationKey]: {
+            priceType: parsedKey.priceType,
+            availableOptions: value,
+          },
+        };
+      },
+      {}
+    );
+
+    const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
+
+    const attributes = Object.entries(form.getFieldValue("attributes")).map(
+      ([key, value]) => {
+        return {
+          name: key,
+          value: value,
+        };
+      }
+    );
+    const postData = {
+      ...form.getFieldsValue(),
+      categoryId,
+      priceConfiguration: pricing,
+      attributes,
+      isPublished: form.getFieldValue("isPublished") ? true : false,
+    };
+    const formData = makeFormData(postData);
+    await productMutate(formData);
+  };
 
   return (
     <>
