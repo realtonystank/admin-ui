@@ -5,27 +5,21 @@ import {
   Col,
   Form,
   Input,
-  message,
-  Popover,
   Row,
   Select,
   Space,
   Switch,
   Typography,
-  Upload,
-  UploadProps,
 } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+
 import { getCategories, getRestaurants } from "../../../http/api";
 import { Category, Tenants } from "../../../types";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
-import { useState } from "react";
+import ProductImage from "./ProductImage";
 
 const ProductForm = () => {
   const selectedCategory = Form.useWatch("categoryId");
-  const [messageApi, contextHolder] = message.useMessage();
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -49,27 +43,6 @@ const ProductForm = () => {
       });
     },
   });
-
-  const uploaderConfig: UploadProps = {
-    name: "file",
-    multiple: false,
-    showUploadList: false,
-    beforeUpload: (file) => {
-      const isJpgOrPng =
-        file.type === "image/jpeg" || file.type === "image/png";
-      if (!isJpgOrPng) {
-        console.error("You can only upload JPG/PNG file");
-        messageApi.error("You can only upload JPG/PNG file");
-      }
-
-      setImageUrl(URL.createObjectURL(file));
-
-      return false;
-    },
-    itemRender: (originNode: React.ReactElement) => {
-      return null;
-    },
-  };
 
   return (
     <Row>
@@ -133,40 +106,7 @@ const ProductForm = () => {
           <Card title="Product image" bordered={false}>
             <Row gutter={20}>
               <Col span={12}>
-                <Form.Item
-                  label=""
-                  name="image"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please upload a product image",
-                    },
-                  ]}
-                >
-                  {contextHolder}
-                  <Upload listType="picture-card" {...uploaderConfig}>
-                    {imageUrl ? (
-                      <Popover
-                        placement="bottom"
-                        content={
-                          <Typography.Text>Click to replace</Typography.Text>
-                        }
-                        style={{ width: "auto" }}
-                      >
-                        <img
-                          src={imageUrl}
-                          alt="avatar"
-                          style={{ width: "100%" }}
-                        />
-                      </Popover>
-                    ) : (
-                      <Space direction="vertical">
-                        <PlusOutlined />
-                        <Typography.Text>Upload</Typography.Text>
-                      </Space>
-                    )}
-                  </Upload>
-                </Form.Item>
+                <ProductImage />
               </Col>
             </Row>
           </Card>
