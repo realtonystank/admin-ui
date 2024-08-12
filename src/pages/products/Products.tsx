@@ -202,6 +202,10 @@ const Products = () => {
     );
     const postData = {
       ...form.getFieldsValue(),
+      tenantId:
+        user!.role === "manager"
+          ? user?.tenant?.id
+          : form.getFieldValue("tenantId"),
       categoryId,
       priceConfiguration: pricing,
       attributes,
