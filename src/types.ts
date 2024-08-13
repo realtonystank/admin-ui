@@ -43,6 +43,18 @@ export type FieldData = {
   value?: string;
 };
 
+export interface PriceConfiguration {
+  [key: string]: {
+    priceType: "base" | "additional";
+    availableOptions: string[];
+  };
+}
+
+export type ProductAttribute = {
+  name: string;
+  value: string | boolean;
+};
+
 export type Product = {
   name: string;
   description: string;
@@ -52,14 +64,9 @@ export type Product = {
   createdAt: string;
   image: string;
   isPublished: boolean;
+  priceConfiguration: PriceConfiguration;
+  attributes: ProductAttribute[];
 };
-
-export interface PriceConfiguration {
-  [key: string]: {
-    priceType: "base" | "additional";
-    availableOptions: string[];
-  };
-}
 
 export interface Attribute {
   name: string;

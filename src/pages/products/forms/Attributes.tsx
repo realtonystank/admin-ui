@@ -11,26 +11,33 @@ import {
   Switch,
   Typography,
 } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { getCategory } from "../../../http/api";
 
 type AttributeProps = {
   selectedCategory: string;
 };
 
 const Attributes = ({ selectedCategory }: AttributeProps) => {
-  const category: Category | null = selectedCategory
-    ? JSON.parse(selectedCategory)
-    : null;
+  const { data: fetchedCategory } = useQuery<Category>({
+    queryKey: ["category", selectedCategory],
+    queryFn: () => {
+      return getCategory(selectedCategory).then((res) => {
+        const { data: category } = res.data;
+        return category;
+      });
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
-  if (!category) {
-    return null;
-  }
+  if (!fetchedCategory) return null;
 
   return (
     <Card
       title={<Typography.Text>Attributes</Typography.Text>}
       bordered={false}
     >
-      {category.attributes.map((attribute: Attribute) => {
+      {fetchedCategory.attributes.map((attribute: Attribute) => {
         return (
           <div key={attribute.name}>
             {attribute.widgetType === "radio" ? (

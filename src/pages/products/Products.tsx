@@ -17,7 +17,7 @@ import {
   LoadingOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import ProductFilter from "./ProductFilter";
 import { FieldData, Product } from "../../types";
@@ -28,7 +28,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { PER_PAGE } from "../../constant";
-import { createProduct, getProducts } from "../../http/api";
+import { createProduct, getProducts, updateProduct } from "../../http/api";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
@@ -97,6 +97,41 @@ const Products = () => {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  useEffect(() => {
+    if (currentProduct) {
+      setDrawerOpen(true);
+
+      const priceConfiguration = Object.entries(
+        currentProduct.priceConfiguration
+      ).reduce((acc, [key, value]) => {
+        const stringifiedKey = JSON.stringify({
+          configurationKey: key,
+          priceType: value.priceType,
+        });
+
+        return {
+          ...acc,
+          [stringifiedKey]: value.availableOptions,
+        };
+      }, {});
+
+      const attributes = currentProduct.attributes.reduce((acc, item) => {
+        return {
+          ...acc,
+          [item.name]: item.value,
+        };
+      }, {});
+
+      form.setFieldsValue({
+        ...currentProduct,
+        priceConfiguration,
+        attributes,
+        categoryId: currentProduct.category._id,
+      });
+    }
+  }, [currentProduct]);
+
   const { user } = useAuthStore();
   const {
     token: { colorBgLayout },
@@ -136,11 +171,17 @@ const Products = () => {
 
   const { mutate: productMutate, isPending: isCreateLoading } = useMutation({
     mutationKey: ["product"],
-    mutationFn: async (data: FormData) =>
-      createProduct(data).then((res) => res.data),
+    mutationFn: async (data: FormData) => {
+      if (currentProduct) {
+        return updateProduct(data, currentProduct._id).then((res) => res.data);
+      } else {
+        return createProduct(data).then((res) => res.data);
+      }
+    },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       form.resetFields();
+      setCurrentProduct(null);
       setDrawerOpen(false);
     },
   });
@@ -190,7 +231,7 @@ const Products = () => {
       {}
     );
 
-    const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
+    const categoryId = form.getFieldValue("categoryId");
 
     const attributes = Object.entries(form.getFieldValue("attributes")).map(
       ([key, value]) => {
@@ -258,7 +299,12 @@ const Products = () => {
               render: (_: string, record: Product) => {
                 return (
                   <Space>
-                    <Button type="link" onClick={() => {}}>
+                    <Button
+                      type="link"
+                      onClick={() => {
+                        setCurrentProduct(record);
+                      }}
+                    >
                       Edit
                     </Button>
                   </Space>
@@ -282,7 +328,7 @@ const Products = () => {
           }}
         />
         <Drawer
-          title={"Add Product"}
+          title={currentProduct ? "Update Product" : "Add Product"}
           width={720}
           destroyOnClose={true}
           open={drawerOpen}
@@ -291,6 +337,7 @@ const Products = () => {
               <Button
                 onClick={() => {
                   form.resetFields();
+                  setCurrentProduct(null);
                   setDrawerOpen(false);
                 }}
               >
@@ -307,13 +354,14 @@ const Products = () => {
           }
           onClose={() => {
             form.resetFields();
+            setCurrentProduct(null);
             setDrawerOpen(false);
             //setCurrentEditingUser(null);
           }}
           styles={{ body: { background: colorBgLayout } }}
         >
           <Form layout="vertical" form={form}>
-            <ProductForm />
+            <ProductForm form={form} />
           </Form>
         </Drawer>
       </Space>
